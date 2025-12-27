@@ -1,0 +1,41 @@
+.App {
+  width: 100%;
+  min-height: 100vh;
+  background-color: #000000;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Smooth transitions for all interactive elements */
+* {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Scroll animation utilities */
+.fade-on-scroll {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.fade-on-scroll.animate-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Enhanced selection */
+::selection {
+  background-color: #FFFFFF;
+  color: #000000;
+}
+
+::-moz-selection {
+  background-color: #FFFFFF;
+  color: #000000;
+}
+
