@@ -55,9 +55,15 @@ const Projects = () => {
   const softwareProjects = [
     {
       id: 4,
-      title: 'Golden Grants',
-      image: '/projects/GoldenGrants.png',
-      description: 'Built an AI system that classifies news articles as real or fake with confidence and bias analysis.',
+      title: '[HACKATHON WINNER] Golden Grants',
+      image: '/projects/GoldenGrants/GoldenGrants.png',
+      galleryImages: [
+        '/projects/GoldenGrants/Image1.jpg',
+        '/projects/GoldenGrants/Image2.png',
+        '/projects/GoldenGrants/Image3.png',
+        '/projects/GoldenGrants/Image4.png'
+      ],
+      description: 'Golden Grants is a Snowflake-powered Chrome extension that helps nonprofits instantly check grant eligibility and generate high-quality application drafts from any grant page.',
       tags: ['React', 'Python', 'TensorFlow', 'WebSockets', 'D3.js'],
       extendedDescription: 'Boolean News is an AI-powered web app built with Flask that analyzes news articles to determine whether they are likely real or fake. It uses an XGBoost model trained on a Kaggle fake-news/real-news dataset and applies TF-IDF text vectorization for classification. The app also provides a confidence score and basic sentiment and subjectivity analysis to help users assess potential bias.',
       features: [

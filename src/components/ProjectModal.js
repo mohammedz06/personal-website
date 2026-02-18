@@ -13,6 +13,7 @@ const ProjectModal = ({ project, isOpen, onClose, category }) => {
   });
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [failedImages, setFailedImages] = useState({});
   const modalRef = useRef(null);
 
   useEffect(() => {
@@ -34,6 +35,12 @@ const ProjectModal = ({ project, isOpen, onClose, category }) => {
       document.body.style.overflow = '';
     };
   }, [isOpen]);
+
+  useEffect(() => {
+    if (isOpen) {
+      setFailedImages({});
+    }
+  }, [isOpen, project]);
 
   useEffect(() => {
     if (isDragging) {
@@ -81,6 +88,13 @@ const ProjectModal = ({ project, isOpen, onClose, category }) => {
 
   if (!isOpen || !project) return null;
 
+  const modalImages = (project.galleryImages && project.galleryImages.length > 0
+    ? project.galleryImages
+    : [project.image]
+  )
+    .filter(Boolean)
+    .slice(0, 4);
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div
@@ -112,19 +126,32 @@ const ProjectModal = ({ project, isOpen, onClose, category }) => {
 
         <div className="modal-content">
           <div className="modal-image-section">
-            <div className="modal-image-placeholder">
-              <span>Image</span>
-            </div>
-            <div className="modal-image-gallery">
-              <div className="gallery-item">
-                <span>Gallery 1</span>
-              </div>
-              <div className="gallery-item">
-                <span>Gallery 2</span>
-              </div>
-              <div className="gallery-item">
-                <span>Gallery 3</span>
-              </div>
+            <div className={`modal-image-grid count-${Math.max(modalImages.length, 1)}`}>
+              {modalImages.length > 0 ? (
+                modalImages.map((src, index) => (
+                  <div key={`${project.id}-${src}-${index}`} className={`modal-image-item slot-${index + 1}`}>
+                    {failedImages[src] ? (
+                      <div className="modal-image-fallback">
+                        <span>{project.title}</span>
+                      </div>
+                    ) : (
+                      <img
+                        src={src}
+                        alt={`${project.title} screenshot ${index + 1}`}
+                        className="modal-image"
+                        loading="lazy"
+                        onError={() => setFailedImages((prev) => ({ ...prev, [src]: true }))}
+                      />
+                    )}
+                  </div>
+                ))
+              ) : (
+                <div className="modal-image-item slot-1">
+                  <div className="modal-image-fallback">
+                    <span>No image available</span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -162,4 +189,3 @@ const ProjectModal = ({ project, isOpen, onClose, category }) => {
 };
 
 export default ProjectModal;
-
