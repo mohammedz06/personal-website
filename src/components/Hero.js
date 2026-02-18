@@ -4,9 +4,7 @@ import './Hero.css';
 const Hero = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isVisible, setIsVisible] = useState(false);
-  const [scrollY, setScrollY] = useState(0);
   const statRefs = useRef([]);
-  const heroRef = useRef(null);
 
   useEffect(() => {
     setIsVisible(true);
@@ -17,18 +15,9 @@ const Hero = () => {
       });
     };
     
-    const handleScroll = () => {
-      if (heroRef.current) {
-        const rect = heroRef.current.getBoundingClientRect();
-        setScrollY(window.scrollY);
-      }
-    };
-
     window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('scroll', handleScroll);
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('scroll', handleScroll);
     };
   }, []);
 
@@ -63,19 +52,21 @@ const Hero = () => {
       { threshold: 0.5 }
     );
 
-    statRefs.current.forEach((ref) => {
+    const observedStats = statRefs.current.filter(Boolean);
+
+    observedStats.forEach((ref) => {
       if (ref) observer.observe(ref);
     });
 
     return () => {
-      statRefs.current.forEach((ref) => {
+      observedStats.forEach((ref) => {
         if (ref) observer.unobserve(ref);
       });
     };
   }, [isVisible]);
 
   return (
-    <section id="about" className="hero" ref={heroRef}>
+    <section id="about" className="hero">
       <div className="hero-container">
         <div 
           className={`hero-content ${isVisible ? 'visible' : ''}`}
