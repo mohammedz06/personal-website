@@ -125,7 +125,7 @@ const Projects = () => {
           <div className="section-header">
             <h2 className="section-title">
               <span className="title-number">02</span>
-              <span className="title-text">Software Development</span>
+              <span className="title-text">Software/Mechatronics Projects</span>
             </h2>
             <div className="title-line"></div>
           </div>
