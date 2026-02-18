@@ -5,6 +5,83 @@ const DEFAULT_RATIO = 16 / 9;
 
 const clamp = (value, min, max) => Math.max(min, Math.min(value, max));
 
+const getOrientation = (ratio) => {
+  if (ratio > 1.08) return 'landscape';
+  if (ratio < 0.92) return 'portrait';
+  return 'square';
+};
+
+const getFourImageLayoutOrder = (images) => {
+  if (images.length !== 4) return images;
+
+  const permutations = [];
+  const buildPermutations = (remaining, current) => {
+    if (!remaining.length) {
+      permutations.push(current);
+      return;
+    }
+
+    for (let i = 0; i < remaining.length; i += 1) {
+      const next = remaining[i];
+      const nextRemaining = [...remaining.slice(0, i), ...remaining.slice(i + 1)];
+      buildPermutations(nextRemaining, [...current, next]);
+    }
+  };
+
+  buildPermutations(images, []);
+
+  const totalLandscape = images.filter((item) => getOrientation(item.ratio) === 'landscape').length;
+  const totalPortrait = images.filter((item) => getOrientation(item.ratio) === 'portrait').length;
+  const shouldForceMixedRows = totalLandscape >= 2 && totalPortrait >= 2;
+
+  let bestOrder = images;
+  let bestScore = Number.POSITIVE_INFINITY;
+
+  permutations.forEach((order) => {
+    const rows = [
+      [order[0], order[1]],
+      [order[2], order[3]]
+    ];
+
+    let score = 0;
+    const rowRatioSums = rows.map((row) => row[0].ratio + row[1].ratio);
+
+    // Keep row visual weights close so the two rows feel harmonious.
+    score += Math.abs(rowRatioSums[0] - rowRatioSums[1]) * 28;
+
+    rows.forEach((row, rowIndex) => {
+      const rowOrientations = row.map((item) => getOrientation(item.ratio));
+      const rowHasLandscape = rowOrientations.includes('landscape');
+      const rowHasPortrait = rowOrientations.includes('portrait');
+      const rowHasSquare = rowOrientations.includes('square');
+
+      if (shouldForceMixedRows) {
+        // When we have two portraits + two landscapes, prefer 1 portrait + 1 landscape per row.
+        if (!(rowHasLandscape && rowHasPortrait)) {
+          score += 120;
+        }
+      } else if ((totalLandscape > 0 && totalPortrait > 0) && !(rowHasLandscape && rowHasPortrait)) {
+        score += 24;
+      } else if (rowHasSquare && (rowHasLandscape || rowHasPortrait)) {
+        score += 8;
+      }
+
+      row.forEach((item, colIndex) => {
+        const expectedPosition = rowIndex * 2 + colIndex;
+        // Small stability penalty to avoid unnecessary jumping when choices tie.
+        score += Math.abs(item.index - expectedPosition) * 0.8;
+      });
+    });
+
+    if (score < bestScore) {
+      bestScore = score;
+      bestOrder = order;
+    }
+  });
+
+  return bestOrder;
+};
+
 const buildRowPartitions = (count, maxRows) => {
   const partitions = [];
 
@@ -29,15 +106,16 @@ const buildRowPartitions = (count, maxRows) => {
 const computeGalleryRows = (images, width) => {
   if (!images.length) return [];
 
+  const orderedImages = images.length === 4 ? getFourImageLayoutOrder(images) : images;
   const safeWidth = Math.max(width || 700, 280);
   const gap = safeWidth < 520 ? 10 : 12;
   const minHeight = safeWidth < 520 ? 90 : 105;
   const maxHeight = safeWidth < 520 ? 155 : 195;
   const targetHeight = safeWidth < 520 ? 120 : 145;
 
-  const partitions = images.length === 4
+  const partitions = orderedImages.length === 4
     ? [[2, 2]]
-    : buildRowPartitions(images.length, Math.min(2, images.length));
+    : buildRowPartitions(orderedImages.length, Math.min(2, orderedImages.length));
 
   let best = null;
 
@@ -47,7 +125,7 @@ const computeGalleryRows = (images, width) => {
     let penalty = 0;
 
     const rows = partition.map((size, rowIndex) => {
-      const rowItems = images.slice(pointer, pointer + size);
+      const rowItems = orderedImages.slice(pointer, pointer + size);
       pointer += size;
 
       const ratioSum = rowItems.reduce((sum, item) => sum + item.ratio, 0);
