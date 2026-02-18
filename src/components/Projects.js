@@ -64,13 +64,13 @@ const Projects = () => {
         '/projects/GoldenGrants/Image4.png'
       ],
       description: 'Golden Grants is a Snowflake-powered Chrome extension that helps nonprofits instantly check grant eligibility and generate high-quality application drafts from any grant page.',
-      tags: ['React', 'Python', 'TensorFlow', 'WebSockets', 'D3.js'],
-      extendedDescription: 'Boolean News is an AI-powered web app built with Flask that analyzes news articles to determine whether they are likely real or fake. It uses an XGBoost model trained on a Kaggle fake-news/real-news dataset and applies TF-IDF text vectorization for classification. The app also provides a confidence score and basic sentiment and subjectivity analysis to help users assess potential bias.',
+      tags: ['Express.js', 'Node.js', 'PostgreSQL', 'React', 'Snowflake', 'TypeScript'],
+      extendedDescription: 'Golden Grants is a Manifest V3 Chrome extension built with TypeScript and a React side panel, backed by a Node.js + Express API using shared Zod schemas for strict validation and deterministic outputs. Snowflake SQL API and Cortex provide the core language reasoning, eligibility evaluation, and structured extraction, while the backend handles chunking, caching, guardrails, and confidence calibration. Security is enforced through server-side inference, Google OAuth gating, and per-user data isolation, ensuring credentials never reach the client. The system is designed for reliable, machine-readable grant analysis rather than simple text summarization.',
       features: [
-        'NLP-based fake news classification with 94% accuracy',
-        'Real-time bias detection across multiple dimensions',
-        'Interactive network visualization of article spread patterns',
-        'Multi-source credibility scoring algorithm'
+        'Real-time eligibility analysis on live grants',
+        'Structured extraction of deadlines and requirements',
+        'Explainable verdicts with confidence and constraints',
+        'Secure backend inference with user isolation'
       ]
     },
     {
