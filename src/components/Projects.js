@@ -77,16 +77,23 @@ const Projects = () => {
     },
     {
       id: 5,
-      title: 'Machine Learning Pipeline',
-      image: '/projects/ml-pipeline.jpg',
-      description: 'Developed an end-to-end ML pipeline for predictive maintenance using sensor data analysis.',
-      tags: ['Python', 'TensorFlow', 'Pandas', 'Data Science', 'MLOps'],
-      extendedDescription: 'This project implements a production-grade machine learning pipeline for predictive maintenance in industrial equipment. The system processes sensor streams in real-time, detects anomalies, and predicts component failures 2-4 weeks in advance. I designed the data ingestion layer, feature engineering pipeline, and model serving infrastructure. The deployment achieved 30% reduction in unplanned downtime through early intervention.',
+      title: 'RythmWear',
+      image: '/projects/RythmWear/RythmWear.png',
+      galleryImages: [
+        '/projects/RythmWear/Image1.jpg',
+        '/projects/RythmWear/Image2.jpg',
+        '/projects/RythmWear/Image3.jpg'
+      ],
+      description: 'RhythmWear is a wearable music interface that turns hand movements into sound. Using flex sensors and motion data, the glove lets you play notes, control effects, and shape audio in real time.',
+      githubUrl: 'https://github.com/mohammedz06/RythmWear',
+      devpostUrl: 'https://devpost.com/software/rythmwear',
+      tags: ['C++', 'express.js', 'mongodb', 'node.js', 'react', 'typescript', 'vite', 'websocket'],
+      extendedDescription: 'RhythmWear is a wearable, real-time gesture-to-audio system built around an ESP32 that performs continuous sensor acquisition from flex sensors and motion sensing, with onboard filtering to reduce noise before transmission. Sensor data is streamed wirelessly via WebSockets to a Node.js + Express server (hosted on a Raspberry Pi), which manages low-latency messaging, connection handling, and state synchronization. A React + TypeScript frontend provides calibration, telemetry visualization, and control logic, while the Web Audio API drives browser-based, low-latency sound synthesis and playback. The communication layer uses a lightweight protocol optimized for minimal payload size and deterministic state updates, enabling stable gesture-triggered audio despite sensor jitter and network variability. System behavior relies heavily on smoothing, hysteresis, and state management rather than raw sensor values, reflecting a latency-sensitive, event-driven architecture.',
       features: [
-        'Streaming data processing with Apache Kafka integration',
-        'Automated feature engineering from 200+ sensor inputs',
-        'LSTM-based time series anomaly detection',
-        'Model retraining pipeline with performance monitoring'
+        'Real-time gesture-controlled audio performance interface',
+        'Wireless low-latency sensor streaming via WebSockets',
+        'Adaptive calibration and signal stability mechanisms',
+        'Browser-based sound engine using Web Audio API'
       ]
     },
     {
