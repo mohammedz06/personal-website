@@ -9,7 +9,7 @@ const Navigation = ({ scrollY }) => {
     { id: 'about', label: 'About' },
     { id: 'skills', label: 'Skills' },
     { id: 'mechanical', label: 'Mechanical' },
-    { id: 'software', label: 'Software' },
+    { id: 'software', label: 'Software/Mechatronics' },
     { id: 'contact', label: 'Contact' }
   ];
 
