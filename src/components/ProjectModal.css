@@ -165,6 +165,7 @@
   gap: 12px;
   width: 100%;
   align-items: stretch;
+  justify-content: center;
 }
 
 .modal-image-item {
@@ -175,18 +176,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-grow: var(--item-grow, 1);
-  flex-basis: 0;
   position: relative;
   transition:
-    flex-grow 0.28s cubic-bezier(0.4, 0, 0.2, 1),
     transform 0.28s cubic-bezier(0.4, 0, 0.2, 1),
     box-shadow 0.28s ease,
     border-color 0.28s ease;
-}
-
-.modal-image-row:hover .modal-image-item:not(.is-fallback) {
-  flex-grow: calc(var(--item-grow, 1) * 0.94);
 }
 
 .modal-image-item:not(.is-fallback) {
@@ -195,8 +189,7 @@
 
 .modal-image-item:not(.is-fallback):hover,
 .modal-image-item.is-active {
-  flex-grow: calc(var(--item-grow, 1) * 1.22);
-  transform: translateY(-2px);
+  transform: translateY(-2px) scale(1.03);
   z-index: 2;
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.45);
 }

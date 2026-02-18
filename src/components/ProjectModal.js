@@ -31,24 +31,13 @@ const computeGalleryRows = (images, width) => {
 
   const safeWidth = Math.max(width || 700, 280);
   const gap = safeWidth < 520 ? 10 : 12;
+  const minHeight = safeWidth < 520 ? 90 : 105;
+  const maxHeight = safeWidth < 520 ? 155 : 195;
+  const targetHeight = safeWidth < 520 ? 120 : 145;
 
-  if (images.length === 4) {
-    const totalTarget = safeWidth < 520 ? 300 : 340;
-    const baseHeight = (totalTarget - gap * 3) / 4;
-    const minHeight = baseHeight * 0.72;
-    const maxHeight = baseHeight * 1.32;
-
-    return images.map((item) => ({
-      height: clamp(safeWidth / item.ratio, minHeight, maxHeight),
-      items: [item]
-    }));
-  }
-
-  const minHeight = safeWidth < 520 ? 92 : 115;
-  const maxHeight = safeWidth < 520 ? 170 : 230;
-  const targetHeight = safeWidth < 520 ? 120 : 165;
-  const maxRows = safeWidth < 520 ? Math.min(3, images.length) : Math.min(2, images.length);
-  const partitions = buildRowPartitions(images.length, maxRows);
+  const partitions = images.length === 4
+    ? [[2, 2]]
+    : buildRowPartitions(images.length, Math.min(2, images.length));
 
   let best = null;
 
@@ -62,25 +51,31 @@ const computeGalleryRows = (images, width) => {
       pointer += size;
 
       const ratioSum = rowItems.reduce((sum, item) => sum + item.ratio, 0);
-      const rowWidth = safeWidth - gap * (size - 1);
-      const rowHeight = rowWidth / ratioSum;
+      const fullRowHeight = (safeWidth - gap * (size - 1)) / ratioSum;
+      let rowHeight = clamp(fullRowHeight, minHeight, maxHeight);
+      let rowWidth = ratioSum * rowHeight + gap * (size - 1);
+
+      // If clamp made row overflow, prefer fitting width over minimum height.
+      if (rowWidth > safeWidth) {
+        rowHeight = fullRowHeight;
+        rowWidth = safeWidth;
+      }
 
       totalHeight += rowHeight;
-      penalty += Math.abs(targetHeight - rowHeight) * 0.3;
-
-      if (rowHeight < minHeight) penalty += (minHeight - rowHeight) * 8;
-      if (rowHeight > maxHeight) penalty += (rowHeight - maxHeight) * 2.5;
-      if (rowIndex === partition.length - 1 && rowHeight > targetHeight * 1.5) {
-        penalty += (rowHeight - targetHeight * 1.5) * 1.5;
-      }
+      penalty += Math.abs(targetHeight - rowHeight) * 0.6;
+      penalty += Math.abs(safeWidth - rowWidth) * 0.08;
 
       return {
         height: clamp(rowHeight, 70, maxHeight + 30),
-        items: rowItems
+        width: rowWidth,
+        items: rowItems.map((item) => ({
+          ...item,
+          width: clamp(item.ratio * rowHeight, 64, safeWidth)
+        }))
       };
     });
 
-    penalty += (partition.length - 1) * 6;
+    penalty += (partition.length - 1) * 8;
     const score = totalHeight + penalty;
 
     if (!best || score < best.score) {
@@ -271,7 +266,10 @@ const ProjectModal = ({ project, isOpen, onClose, category }) => {
                       <div
                         key={`${project.id}-${item.src}-${item.index}`}
                         className={`modal-image-item ${failedImages[item.src] ? 'is-fallback' : ''} ${expandedImage && expandedImage.src === item.src ? 'is-active' : ''}`}
-                        style={{ '--item-grow': item.ratio }}
+                        style={{
+                          width: `${Math.round(item.width)}px`,
+                          height: `${Math.round(row.height)}px`
+                        }}
                         onClick={() => {
                           if (!failedImages[item.src]) {
                             toggleExpandedImage(item.src, item.index);
@@ -321,7 +319,7 @@ const ProjectModal = ({ project, isOpen, onClose, category }) => {
                 ))
               ) : (
                 <div className="modal-image-row" style={{ height: '140px' }}>
-                  <div className="modal-image-item" style={{ flexGrow: 1, flexBasis: 0 }}>
+                  <div className="modal-image-item" style={{ width: '100%', height: '140px' }}>
                     <div className="modal-image-fallback">
                       <span>No image available</span>
                     </div>
