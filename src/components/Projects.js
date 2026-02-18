@@ -65,6 +65,7 @@ const Projects = () => {
       ],
       description: 'Golden Grants is a Snowflake-powered Chrome extension that helps nonprofits instantly check grant eligibility and generate high-quality application drafts from any grant page.',
       githubUrl: 'https://github.com/mohammedz06/GoldenGrants',
+      devpostUrl: 'https://devpost.com/software/golden-grants',
       tags: ['Express.js', 'Node.js', 'PostgreSQL', 'React', 'Snowflake', 'TypeScript'],
       extendedDescription: 'Golden Grants is a Manifest V3 Chrome extension built with TypeScript and a React side panel, backed by a Node.js + Express API using shared Zod schemas for strict validation and deterministic outputs. Snowflake SQL API and Cortex provide the core language reasoning, eligibility evaluation, and structured extraction, while the backend handles chunking, caching, guardrails, and confidence calibration. Security is enforced through server-side inference, Google OAuth gating, and per-user data isolation, ensuring credentials never reach the client. The system is designed for reliable, machine-readable grant analysis rather than simple text summarization.',
       features: [

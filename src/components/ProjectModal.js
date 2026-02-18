@@ -457,16 +457,28 @@ const ProjectModal = ({ project, isOpen, onClose, category }) => {
               )}
             </ul>
 
-            {project.githubUrl && (
+            {(project.githubUrl || project.devpostUrl) && (
               <div className="modal-links">
-                <a
-                  href={project.githubUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="modal-project-link"
-                >
-                  Check it out on GitHub
-                </a>
+                {project.githubUrl && (
+                  <a
+                    href={project.githubUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="modal-project-link"
+                  >
+                    Check it out on GitHub
+                  </a>
+                )}
+                {project.devpostUrl && (
+                  <a
+                    href={project.devpostUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="modal-project-link"
+                  >
+                    Check it out on Devpost
+                  </a>
+                )}
               </div>
             )}
           </div>

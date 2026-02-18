@@ -366,6 +366,9 @@
 
 .modal-links {
   margin-top: 5px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .modal-project-link {
@@ -373,6 +376,7 @@
   align-items: center;
   justify-content: center;
   min-height: 40px;
+  min-width: 220px;
   padding: 8px 16px;
   border: 1px solid #FFFFFF;
   color: #FFFFFF;
