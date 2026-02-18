@@ -456,6 +456,19 @@ const ProjectModal = ({ project, isOpen, onClose, category }) => {
                 <li>No features listed</li>
               )}
             </ul>
+
+            {project.githubUrl && (
+              <div className="modal-links">
+                <a
+                  href={project.githubUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="modal-project-link"
+                >
+                  Check it out on GitHub
+                </a>
+              </div>
+            )}
           </div>
         </div>
       </div>
