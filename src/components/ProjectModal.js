@@ -1,5 +1,82 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import './ProjectModal.css';
+
+const DEFAULT_RATIO = 16 / 9;
+
+const clamp = (value, min, max) => Math.max(min, Math.min(value, max));
+
+const buildRowPartitions = (count, maxRows) => {
+  const partitions = [];
+
+  const dfs = (remaining, rowsLeft, current) => {
+    if (rowsLeft === 1) {
+      partitions.push([...current, remaining]);
+      return;
+    }
+
+    for (let size = 1; size <= remaining - (rowsLeft - 1); size += 1) {
+      dfs(remaining - size, rowsLeft - 1, [...current, size]);
+    }
+  };
+
+  for (let rows = 1; rows <= Math.min(maxRows, count); rows += 1) {
+    dfs(count, rows, []);
+  }
+
+  return partitions;
+};
+
+const computeGalleryRows = (images, width) => {
+  if (!images.length) return [];
+
+  const safeWidth = Math.max(width || 700, 280);
+  const gap = safeWidth < 520 ? 10 : 12;
+  const minHeight = safeWidth < 520 ? 92 : 115;
+  const maxHeight = safeWidth < 520 ? 170 : 230;
+  const targetHeight = safeWidth < 520 ? 120 : 165;
+  const maxRows = safeWidth < 520 ? Math.min(3, images.length) : Math.min(2, images.length);
+  const partitions = buildRowPartitions(images.length, maxRows);
+
+  let best = null;
+
+  partitions.forEach((partition) => {
+    let pointer = 0;
+    let totalHeight = 0;
+    let penalty = 0;
+
+    const rows = partition.map((size, rowIndex) => {
+      const rowItems = images.slice(pointer, pointer + size);
+      pointer += size;
+
+      const ratioSum = rowItems.reduce((sum, item) => sum + item.ratio, 0);
+      const rowWidth = safeWidth - gap * (size - 1);
+      const rowHeight = rowWidth / ratioSum;
+
+      totalHeight += rowHeight;
+      penalty += Math.abs(targetHeight - rowHeight) * 0.3;
+
+      if (rowHeight < minHeight) penalty += (minHeight - rowHeight) * 8;
+      if (rowHeight > maxHeight) penalty += (rowHeight - maxHeight) * 2.5;
+      if (rowIndex === partition.length - 1 && rowHeight > targetHeight * 1.5) {
+        penalty += (rowHeight - targetHeight * 1.5) * 1.5;
+      }
+
+      return {
+        height: clamp(rowHeight, 70, maxHeight + 30),
+        items: rowItems
+      };
+    });
+
+    penalty += (partition.length - 1) * 6;
+    const score = totalHeight + penalty;
+
+    if (!best || score < best.score) {
+      best = { score, rows };
+    }
+  });
+
+  return best ? best.rows : [{ height: targetHeight, items: images }];
+};
 
 const ProjectModal = ({ project, isOpen, onClose, category }) => {
   const [position, setPosition] = useState(() => {
@@ -14,7 +91,29 @@ const ProjectModal = ({ project, isOpen, onClose, category }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [failedImages, setFailedImages] = useState({});
+  const [imageRatios, setImageRatios] = useState({});
+  const [galleryWidth, setGalleryWidth] = useState(0);
   const modalRef = useRef(null);
+  const galleryRef = useRef(null);
+
+  const modalImages = useMemo(() => (
+    (project?.galleryImages && project.galleryImages.length > 0
+      ? project.galleryImages
+      : [project?.image]
+    )
+      .filter(Boolean)
+      .slice(0, 4)
+  ), [project]);
+
+  const galleryRows = useMemo(() => {
+    const images = modalImages.map((src, index) => ({
+      src,
+      index,
+      ratio: clamp(imageRatios[src] || DEFAULT_RATIO, 0.55, 2.8)
+    }));
+
+    return computeGalleryRows(images, galleryWidth);
+  }, [modalImages, imageRatios, galleryWidth]);
 
   useEffect(() => {
     if (isOpen) {
@@ -40,6 +139,24 @@ const ProjectModal = ({ project, isOpen, onClose, category }) => {
     if (isOpen) {
       setFailedImages({});
     }
+  }, [isOpen, project]);
+
+  useEffect(() => {
+    if (!isOpen || !galleryRef.current) return undefined;
+
+    const node = galleryRef.current;
+    const updateWidth = () => setGalleryWidth(node.clientWidth);
+    updateWidth();
+
+    if (typeof ResizeObserver === 'undefined') {
+      window.addEventListener('resize', updateWidth);
+      return () => window.removeEventListener('resize', updateWidth);
+    }
+
+    const observer = new ResizeObserver(() => updateWidth());
+    observer.observe(node);
+
+    return () => observer.disconnect();
   }, [isOpen, project]);
 
   useEffect(() => {
@@ -88,13 +205,6 @@ const ProjectModal = ({ project, isOpen, onClose, category }) => {
 
   if (!isOpen || !project) return null;
 
-  const modalImages = (project.galleryImages && project.galleryImages.length > 0
-    ? project.galleryImages
-    : [project.image]
-  )
-    .filter(Boolean)
-    .slice(0, 4);
-
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div
@@ -126,29 +236,55 @@ const ProjectModal = ({ project, isOpen, onClose, category }) => {
 
         <div className="modal-content">
           <div className="modal-image-section">
-            <div className={`modal-image-grid count-${Math.max(modalImages.length, 1)}`}>
-              {modalImages.length > 0 ? (
-                modalImages.map((src, index) => (
-                  <div key={`${project.id}-${src}-${index}`} className={`modal-image-item slot-${index + 1}`}>
-                    {failedImages[src] ? (
-                      <div className="modal-image-fallback">
-                        <span>{project.title}</span>
+            <div className="modal-image-rows" ref={galleryRef}>
+              {galleryRows.length > 0 ? (
+                galleryRows.map((row, rowIndex) => (
+                  <div
+                    key={`${project.id}-row-${rowIndex}`}
+                    className="modal-image-row"
+                    style={{ height: `${Math.round(row.height)}px` }}
+                  >
+                    {row.items.map((item) => (
+                      <div
+                        key={`${project.id}-${item.src}-${item.index}`}
+                        className="modal-image-item"
+                        style={{ flexGrow: item.ratio, flexBasis: 0 }}
+                      >
+                        {failedImages[item.src] ? (
+                          <div className="modal-image-fallback">
+                            <span>{project.title}</span>
+                          </div>
+                        ) : (
+                          <img
+                            src={item.src}
+                            alt={`${project.title} screenshot ${item.index + 1}`}
+                            className="modal-image"
+                            loading="lazy"
+                            onLoad={(e) => {
+                              const naturalWidth = e.currentTarget.naturalWidth;
+                              const naturalHeight = e.currentTarget.naturalHeight;
+                              if (!naturalWidth || !naturalHeight) return;
+
+                              const ratio = naturalWidth / naturalHeight;
+                              setImageRatios((prev) => {
+                                const existing = prev[item.src];
+                                if (existing && Math.abs(existing - ratio) < 0.01) return prev;
+                                return { ...prev, [item.src]: ratio };
+                              });
+                            }}
+                            onError={() => setFailedImages((prev) => ({ ...prev, [item.src]: true }))}
+                          />
+                        )}
                       </div>
-                    ) : (
-                      <img
-                        src={src}
-                        alt={`${project.title} screenshot ${index + 1}`}
-                        className="modal-image"
-                        loading="lazy"
-                        onError={() => setFailedImages((prev) => ({ ...prev, [src]: true }))}
-                      />
-                    )}
+                    ))}
                   </div>
                 ))
               ) : (
-                <div className="modal-image-item slot-1">
-                  <div className="modal-image-fallback">
-                    <span>No image available</span>
+                <div className="modal-image-row" style={{ height: '140px' }}>
+                  <div className="modal-image-item" style={{ flexGrow: 1, flexBasis: 0 }}>
+                    <div className="modal-image-fallback">
+                      <span>No image available</span>
+                    </div>
                   </div>
                 </div>
               )}
