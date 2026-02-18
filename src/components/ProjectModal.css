@@ -164,6 +164,7 @@
   display: flex;
   gap: 12px;
   width: 100%;
+  align-items: stretch;
 }
 
 .modal-image-item {
@@ -174,6 +175,43 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-grow: var(--item-grow, 1);
+  flex-basis: 0;
+  position: relative;
+  transition:
+    flex-grow 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.28s ease,
+    border-color 0.28s ease;
+}
+
+.modal-image-row:hover .modal-image-item:not(.is-fallback) {
+  flex-grow: calc(var(--item-grow, 1) * 0.94);
+}
+
+.modal-image-item:not(.is-fallback) {
+  cursor: zoom-in;
+}
+
+.modal-image-item:not(.is-fallback):hover,
+.modal-image-item.is-active {
+  flex-grow: calc(var(--item-grow, 1) * 1.22);
+  transform: translateY(-2px);
+  z-index: 2;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.45);
+}
+
+.modal-image-item.is-active {
+  cursor: zoom-out;
+}
+
+.modal-image-item:focus-visible {
+  outline: 2px solid #FFFFFF;
+  outline-offset: 2px;
+}
+
+.modal-image-item.is-fallback {
+  cursor: default;
 }
 
 .modal-image {
@@ -182,6 +220,12 @@
   max-width: 100%;
   max-height: 100%;
   display: block;
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modal-image-item:not(.is-fallback):hover .modal-image,
+.modal-image-item.is-active .modal-image {
+  transform: scale(1.025);
 }
 
 .modal-image-fallback {
@@ -208,6 +252,38 @@
   text-transform: uppercase;
   letter-spacing: 1px;
   opacity: 0.6;
+}
+
+.modal-image-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 2500;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  cursor: zoom-out;
+}
+
+.modal-image-lightbox-img {
+  width: auto;
+  height: auto;
+  max-width: min(94vw, 1200px);
+  max-height: min(86vh, 820px);
+  object-fit: contain;
+  border: 1px solid #FFFFFF;
+  background-color: #000000;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.55);
+}
+
+.modal-image-lightbox-hint {
+  margin-top: 12px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.75;
 }
 
 .modal-text-section {
@@ -319,5 +395,14 @@
 
   .modal-image-row {
     gap: 8px;
+  }
+
+  .modal-image-lightbox {
+    padding: 16px;
+  }
+
+  .modal-image-lightbox-img {
+    max-width: 94vw;
+    max-height: 80vh;
   }
 }

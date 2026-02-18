@@ -31,6 +31,19 @@ const computeGalleryRows = (images, width) => {
 
   const safeWidth = Math.max(width || 700, 280);
   const gap = safeWidth < 520 ? 10 : 12;
+
+  if (images.length === 4) {
+    const totalTarget = safeWidth < 520 ? 300 : 340;
+    const baseHeight = (totalTarget - gap * 3) / 4;
+    const minHeight = baseHeight * 0.72;
+    const maxHeight = baseHeight * 1.32;
+
+    return images.map((item) => ({
+      height: clamp(safeWidth / item.ratio, minHeight, maxHeight),
+      items: [item]
+    }));
+  }
+
   const minHeight = safeWidth < 520 ? 92 : 115;
   const maxHeight = safeWidth < 520 ? 170 : 230;
   const targetHeight = safeWidth < 520 ? 120 : 165;
@@ -92,6 +105,7 @@ const ProjectModal = ({ project, isOpen, onClose, category }) => {
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [failedImages, setFailedImages] = useState({});
   const [imageRatios, setImageRatios] = useState({});
+  const [expandedImage, setExpandedImage] = useState(null);
   const [galleryWidth, setGalleryWidth] = useState(0);
   const modalRef = useRef(null);
   const galleryRef = useRef(null);
@@ -138,6 +152,8 @@ const ProjectModal = ({ project, isOpen, onClose, category }) => {
   useEffect(() => {
     if (isOpen) {
       setFailedImages({});
+      setImageRatios({});
+      setExpandedImage(null);
     }
   }, [isOpen, project]);
 
@@ -205,6 +221,13 @@ const ProjectModal = ({ project, isOpen, onClose, category }) => {
 
   if (!isOpen || !project) return null;
 
+  const toggleExpandedImage = (src, index) => {
+    setExpandedImage((prev) => {
+      if (prev && prev.src === src) return null;
+      return { src, index };
+    });
+  };
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div
@@ -247,8 +270,22 @@ const ProjectModal = ({ project, isOpen, onClose, category }) => {
                     {row.items.map((item) => (
                       <div
                         key={`${project.id}-${item.src}-${item.index}`}
-                        className="modal-image-item"
-                        style={{ flexGrow: item.ratio, flexBasis: 0 }}
+                        className={`modal-image-item ${failedImages[item.src] ? 'is-fallback' : ''} ${expandedImage && expandedImage.src === item.src ? 'is-active' : ''}`}
+                        style={{ '--item-grow': item.ratio }}
+                        onClick={() => {
+                          if (!failedImages[item.src]) {
+                            toggleExpandedImage(item.src, item.index);
+                          }
+                        }}
+                        role={failedImages[item.src] ? undefined : 'button'}
+                        tabIndex={failedImages[item.src] ? undefined : 0}
+                        onKeyDown={(e) => {
+                          if (failedImages[item.src]) return;
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            toggleExpandedImage(item.src, item.index);
+                          }
+                        }}
                       >
                         {failedImages[item.src] ? (
                           <div className="modal-image-fallback">
@@ -272,7 +309,10 @@ const ProjectModal = ({ project, isOpen, onClose, category }) => {
                                 return { ...prev, [item.src]: ratio };
                               });
                             }}
-                            onError={() => setFailedImages((prev) => ({ ...prev, [item.src]: true }))}
+                            onError={() => {
+                              setFailedImages((prev) => ({ ...prev, [item.src]: true }));
+                              setExpandedImage((prev) => (prev && prev.src === item.src ? null : prev));
+                            }}
                           />
                         )}
                       </div>
@@ -289,6 +329,29 @@ const ProjectModal = ({ project, isOpen, onClose, category }) => {
                 </div>
               )}
             </div>
+
+            {expandedImage && (
+              <div
+                className="modal-image-lightbox"
+                onClick={() => setExpandedImage(null)}
+                role="button"
+                tabIndex={0}
+                aria-label="Minimize expanded image"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') {
+                    e.preventDefault();
+                    setExpandedImage(null);
+                  }
+                }}
+              >
+                <img
+                  src={expandedImage.src}
+                  alt={`${project.title} expanded screenshot ${expandedImage.index + 1}`}
+                  className="modal-image-lightbox-img"
+                />
+                <span className="modal-image-lightbox-hint">Click again to minimize</span>
+              </div>
+            )}
           </div>
 
           <div className="modal-text-section">
